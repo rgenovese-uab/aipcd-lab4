@@ -1,0 +1,15 @@
+export TOP_DIR_NAME=$(pwd)
+
+export TOP_DUT_DIR_NAME=$(pwd)
+
+echo "Setting up work directory"
+vlib work
+
+vlog -f top_test_filelist.f +incdir+${QUESTA_MVC_HOME}/questa_mvc_src/sv \
+    hdl_top.sv \
+    hvl_top.sv 
+echo "Optimisation step"
+vopt -64 -o top_opt hdl_top hvl_top -debug -designfile design.bin
+
+echo "Running test"
+vsim -c -64 -mvchome ${QUESTA_MVC_HOME} top_opt +nowarnTSCALE -t 1ns -do "run -all; quit" +UVM_TESTNAME=top_test_base +SEQ=top_example_vseq -qwavedb=+signal+transaction+class+uvm_schematic

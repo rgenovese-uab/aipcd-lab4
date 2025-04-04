@@ -1,0 +1,23 @@
+#!/bin/bash
+
+LD_LIBRARY_PATH=${QUESTA_MVC_HOME}/questa_mvc_core/linux_x86_64_gcc-6.3_ius:${IUS_HOME}/tools/cdsgcc/gcc/6.3/install/lib64:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH
+
+xrun -sv -uvm -quiet -access +rwc -64bit -timescale 1ns/1ns \
+    +incdir+${QUESTA_MVC_HOME}/questa_mvc_src/sv \
+    ${QUESTA_MVC_HOME}/include/questa_mvc_svapi.sv \
+    +define+MAP_PROT_ATTR ${QUESTA_MVC_HOME}/questa_mvc_src/sv/mvc_pkg.sv \
+    +incdir+${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4 ${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/mgc_axi4_v1_0_pkg.sv \
+    +incdir+../config_policies \
+    ../config_policies/top_params_pkg.sv \
+    top_pkg.sv \
+    +incdir+${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/modules ${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/modules/axi4_master.sv \
+    /root/Documents/BSC/Master/AIPD/lab4/aipcd-lab4/axi_slave_64bits.sv \
+    default_clk_gen.sv \
+    default_reset_gen.sv \
+    hdl_top.sv \
+    hvl_top.sv \
+    -sv_root ${QUESTA_MVC_HOME}/questa_mvc_core/linux_x86_64_gcc-6.3_ius \
+    -sv_lib libaxi4_IN_SystemVerilog_IUS_full \
+    +UVM_TESTNAME=top_test_base \
+    +SEQ=top_example_vseq

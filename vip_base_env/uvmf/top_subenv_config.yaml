@@ -1,0 +1,15 @@
+## To instantiate this subenv in a higher level, use this structure:
+##  qvip_subenvs :
+##    - { name: "<instance_name_of_subenv>", type: "top" }
+uvmf:
+  qvip_library:
+    version: '2021.3_2'
+    date: '09/26/2021:08:26'
+  qvip_environments:
+     "top":
+        location: "/root/Documents/BSC/Master/AIPD/lab4/aipcd-lab4/top_dir"
+        agents:
+          - name: 'axi4_master_0'
+            imports:
+              - "mvc_pkg"
+              - "mgc_axi4_v1_0_pkg"
