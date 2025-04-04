@@ -1,0 +1,1 @@
+g++ -std=c++17 -shared -static-libgcc -static-libstdc++ -fPIC -g dct.c -o dct.so
