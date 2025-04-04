@@ -17,7 +17,7 @@ HDL_SV_SOURCE = \
             default_reset_gen.sv \
             hdl_top.sv
 
-UVM_OPTIONS = +UVM_TESTNAME=top_test_base +SEQ=top_example_vseq
+UVM_OPTIONS = +UVM_TESTNAME=top_test_base +SEQ=top_example_vseq -sv_lib ../../dct
 
 ####################
 # Questa support.
