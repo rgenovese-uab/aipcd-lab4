@@ -16,7 +16,9 @@ package top_pkg;
     import mgc_axi4lite_seq_pkg::*;
     import mgc_axi4_v1_0_pkg::*;
     
+    `include "dct_transaction.sv"
     `include "top_env_config.svh"
+    `include "scoreboard.sv"
     `include "top_env.svh"
     `include "top_vseq_base.svh"
     `include "top_test_base.svh"

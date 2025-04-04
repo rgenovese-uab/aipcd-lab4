@@ -44,6 +44,7 @@ function void top_test_base::init_vseq
     top_vseq_base vseq
 );
     vseq.axi4_master_0 = env.axi4_master_0.m_sequencer;
+    vseq.env_cfg = env_cfg;
 endfunction: init_vseq
 
 function void top_test_base::build_phase

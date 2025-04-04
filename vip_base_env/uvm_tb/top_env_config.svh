@@ -13,11 +13,15 @@ class top_env_config extends uvm_object;
     
     address_map DCT;
     
+    //Custom port for analysis
+    uvm_analysis_port #(dct_transaction) ap;
+
     function new
     (
         string name = "top_env_config"
     );
         super.new(name);
+        ap = new("ap", null);
     endfunction
     
     extern function void initialize;

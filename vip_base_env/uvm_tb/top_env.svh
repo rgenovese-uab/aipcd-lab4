@@ -11,6 +11,7 @@ class top_env extends uvm_env;
     // Agent handles
     
     axi4_master_0_agent_t axi4_master_0;
+    scoreboard dct_scoreboard;
     function new
     (
         string name = "top_env",
@@ -20,6 +21,11 @@ class top_env extends uvm_env;
     endfunction
     
     extern function void build_phase
+    (
+        uvm_phase phase
+    );
+
+    extern function void connect_phase
     (
         uvm_phase phase
     );
@@ -39,6 +45,16 @@ function void top_env::build_phase
     end
     axi4_master_0 = axi4_master_0_agent_t::type_id::create("axi4_master_0", this );
     axi4_master_0.set_mvc_config(cfg.axi4_master_0_cfg);
+
+    dct_scoreboard = scoreboard::type_id::create("dct_scoreboard", this);
     
 endfunction: build_phase
+
+function void top_env::connect_phase
+(
+    uvm_phase phase
+);
+   cfg.ap.connect(dct_scoreboard.ap_imp);
+    
+endfunction: connect_phase
 

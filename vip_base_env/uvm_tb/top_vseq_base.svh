@@ -9,6 +9,8 @@ class top_vseq_base extends uvm_sequence;
     // Handles for each of the target (QVIP) sequencers
     
     mvc_sequencer axi4_master_0;
+    top_env_config env_cfg;
+    
     function new
     (
         string name = "top_vseq_base"

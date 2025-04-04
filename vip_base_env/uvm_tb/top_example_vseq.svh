@@ -7,8 +7,6 @@
 // The purpose of this example virtual sequence is to show how the default or selected sequences for 
 // each QVIP can be run. The sequences are run in series in an arbitary order. 
 
-import "DPI-C" function int  dct(input real in_block[8][8], output real out_block[8][8]);
-
 class top_example_vseq extends top_vseq_base;
     `uvm_object_utils(top_example_vseq)
     function new
@@ -30,6 +28,7 @@ task top_example_vseq::body;
     
     real in[8][8];
     real out[8][8], out_ref[8][8];
+    dct_transaction tx;
 
     // Sequences run in the following order
     
@@ -51,7 +50,8 @@ task top_example_vseq::body;
                         //$display("IN[%d][%d]=%f",row, col, in[row][col]);
                     end
                 end
-
+                tx = new();
+                tx.in = in;
                 // Convert each real value to 64-bit representation and store in wr_data
                 for (row = 0; row < 8; row++) begin
                     for (col = 0; col < 8; col++) begin
@@ -111,7 +111,9 @@ task top_example_vseq::body;
                     // Convert to real and store in the output matrix
                     out[i/8][i%8] = $bitstoreal(temp);
                 end
-
+                tx.out = out;
+                env_cfg.ap.write(tx);
+                /*
                 $display("CALL DCT - IN[0][0]=%f - IN[7][7]=%f", in[0][0], in[7][7]);
                 dct(in, out_ref);
                 $display("CALLED DCT - OUT_REF[0][0]=%f - OUT_REF[7][7]=%f", out_ref[0][0], out_ref[7][7]);
@@ -126,7 +128,7 @@ task top_example_vseq::body;
                             $display("IN[%d][%d]=%h == OUT[%d][%d]=%h",row, col, in[row][col], row, col, out[row][col]);
                     end
                 end
-
+                */
 
 
             end
