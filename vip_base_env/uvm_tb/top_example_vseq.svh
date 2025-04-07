@@ -112,7 +112,8 @@ task top_example_vseq::body;
                     out[i/8][i%8] = $bitstoreal(temp);
                 end
                 tx.out = out;
-                env_cfg.ap.write(tx);
+                //env_cfg.ap.write(tx);
+                ap_db.write(tx);
                 /*
                 $display("CALL DCT - IN[0][0]=%f - IN[7][7]=%f", in[0][0], in[7][7]);
                 dct(in, out_ref);

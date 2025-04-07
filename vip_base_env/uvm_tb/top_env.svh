@@ -12,6 +12,8 @@ class top_env extends uvm_env;
     
     axi4_master_0_agent_t axi4_master_0;
     scoreboard dct_scoreboard;
+    uvm_analysis_port #(dct_transaction) ap_db;
+
     function new
     (
         string name = "top_env",
@@ -47,6 +49,9 @@ function void top_env::build_phase
     axi4_master_0.set_mvc_config(cfg.axi4_master_0_cfg);
 
     dct_scoreboard = scoreboard::type_id::create("dct_scoreboard", this);
+
+    ap_db = new("ap_db", null);
+    uvm_config_db #(uvm_analysis_port#(dct_transaction))::set(null, "*", "ap_db", ap_db);
     
 endfunction: build_phase
 
@@ -54,7 +59,8 @@ function void top_env::connect_phase
 (
     uvm_phase phase
 );
-   cfg.ap.connect(dct_scoreboard.ap_imp);
+   //cfg.ap.connect(dct_scoreboard.ap_imp);
+   ap_db.connect(dct_scoreboard.ap_imp);
     
 endfunction: connect_phase
 

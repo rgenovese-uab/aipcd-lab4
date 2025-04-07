@@ -10,6 +10,7 @@ class top_vseq_base extends uvm_sequence;
     
     mvc_sequencer axi4_master_0;
     top_env_config env_cfg;
+    uvm_analysis_port #(dct_transaction) ap_db;
     
     function new
     (
@@ -20,6 +21,13 @@ class top_vseq_base extends uvm_sequence;
     
     task body;
     endtask: body
+
+    // Called before the body() task
+    task pre_body ();
+        if(!uvm_config_db #(uvm_analysis_port#(dct_transaction))::get(null, "*", "ap_db", ap_db)) begin
+            `uvm_error(get_type_name(), "No uvm_analysis_port in DB")
+        end
+    endtask
     
 endclass: top_vseq_base
 
