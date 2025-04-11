@@ -12,7 +12,7 @@ HVL_SV_SOURCE = ${QUESTA_MVC_HOME}/include/questa_mvc_svapi.sv \
             hvl_top.sv
 HDL_SV_SOURCE = \
             +incdir+${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/modules ${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/modules/axi4_master.sv \
-            /root/Documents/BSC/Master/AIPD/lab4/aipcd-lab4/axi_slave_64bits.sv \
+            ../../axi_slave_64bits.sv \
             default_clk_gen.sv \
             default_reset_gen.sv \
             hdl_top.sv
