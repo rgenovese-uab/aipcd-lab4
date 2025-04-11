@@ -93,14 +93,15 @@ module axi_slave #(
         end
     end
 
-    logic [ADDR_WIDTH-1:0] aux_awaddr_reg;
+    logic [ADDR_WIDTH-1:0]  aux_awaddr_reg;
+    logic                   last_in_block_written;
     assign aux_awaddr_reg = awaddr_reg[ADDR_WIDTH-1:2];
 
     // Write Data Channel Handling
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             wready <= 1'b0;
-            mem[1] <= 4'h0; //FAKE STATUS NOT DONE
+            last_in_block_written <= 1'b0;
         end else begin
             if (aw_active && wvalid) begin
                 wready <= 1'b1;
@@ -111,7 +112,7 @@ module axi_slave #(
                     //$display("AXI SLAVE - COPY ADDR %d VALUE %h AWADDR %d ",'h80 +awaddr_reg[ADDR_WIDTH-1:2], wdata, 'h80 +awaddr_reg);
                 end
                 if(awaddr_reg[ADDR_WIDTH-1:2] == 'h80) //LAST VALUE WAS WRITTEN
-                    mem[1] <= -1; //FAKE STATUS DONE
+                    last_in_block_written <= 1'b1;
                 if (awburst_cnt != 0) begin
                     awaddr_reg  <= awaddr_reg + (1 << awsize);
                     awburst_cnt <= awburst_cnt - 1;
@@ -121,6 +122,18 @@ module axi_slave #(
             end
         end
     end
+
+    //FAKE STATUS DONE
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            mem[1] <= 4'h0; //FAKE STATUS NOT DONE
+        end 
+        else begin
+            if( last_in_block_written && mem[0] =='h1 )
+                mem[1] <= -1; //FAKE STATUS DONE
+        end
+    end
+
 
     // Write Response Channel Handling
     always_ff @(posedge clk or negedge reset_n) begin
