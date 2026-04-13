@@ -162,6 +162,7 @@ module dct_compute (
 
     state_t state;
     logic [2:0] idx;  // 0..7, counts rows then columns
+    logic [3:0] done_cnt;  // cuenta hasta 10
 
     // =========================================================================
     // 3.  Fixed-point data storage
@@ -312,6 +313,7 @@ module dct_compute (
             state <= IDLE;
             done  <= 1'b0;
             idx   <= 3'd0;
+            done_cnt <= 4'd0;
             for (int i = 0; i < 64; i++) out_block[i] <= 64'd0;
         end else begin
             case (state)
@@ -393,8 +395,15 @@ module dct_compute (
 
                 // ----------------------------------------------------------
                 DONE_ST: begin
-                    done  <= 1'b1;
-                    state <= DONE_ST;
+                    done <= 1'b1;
+
+                    if (done_cnt == 4'd9) begin
+                        done_cnt <= 4'd0;
+                        state    <= IDLE;
+                    end else begin
+                        done_cnt <= done_cnt + 1'd1;
+                        state <= DONE_ST;
+                    end
                 end
 
                 default: state <= IDLE;
