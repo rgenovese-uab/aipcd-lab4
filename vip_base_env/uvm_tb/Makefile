@@ -12,6 +12,7 @@ HVL_SV_SOURCE = ${QUESTA_MVC_HOME}/include/questa_mvc_svapi.sv \
             hvl_top.sv
 HDL_SV_SOURCE = \
             +incdir+${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/modules ${QUESTA_MVC_HOME}/questa_mvc_src/sv/axi4/modules/axi4_master.sv \
+            ../../dct_compute.sv \
             ../../axi_slave_64bits.sv \
             default_clk_gen.sv \
             default_reset_gen.sv \
@@ -32,29 +33,29 @@ work:
 	vlib work
 
 hvl_sv:
-	vlog $(INCDIRS) $(HVL_SV_SOURCE)
+	vlog -64 $(INCDIRS) $(HVL_SV_SOURCE)
 
 hdl_sv:
-	vlog $(INCDIRS) +acc $(HDL_SV_SOURCE)
+	vlog -64 $(INCDIRS) +acc $(HDL_SV_SOURCE)
 
 opt:
-	vopt hdl_top hvl_top -o top_opt
+	vopt -64 hdl_top hvl_top -o top_opt
 
 vis_opt:
-	vopt hdl_top hvl_top -o top_opt -debug -designfile design.bin
+	vopt -64 hdl_top hvl_top -o top_opt -debug -designfile design.bin
 
 sim:
-	vsim -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns -do "run -all; quit"
+	vsim -64 -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns -do "source wave.do; run -all; quit"
 
 vis_sim:
-	vsim -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns -c -do "run -all; quit" -qwavedb=+signal+transaction+class+uvm_schematic
+	vsim -64 -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns -c -do "run -all; quit" -qwavedb=+signal+transaction+class+uvm_schematic
 	visualizer -designfile design.bin -wavefile qwave.db
 
 vis_int: work sv vis_opt
-	vsim -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns -visualizer=design.bin -qwavedb=+signal+transaction+class+uvm_schematic
+	vsim -64 -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns -visualizer=design.bin -qwavedb=+signal+transaction+class+uvm_schematic
 
 gui:
-	vsim -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns
+	vsim -64 -mvchome ${QUESTA_MVC_HOME} top_opt $(UVM_OPTIONS) +nowarnTSCALE -t 1ns
 
 ####################
 # Incisive support.

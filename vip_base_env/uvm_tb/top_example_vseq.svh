@@ -6,6 +6,8 @@
 //
 // The purpose of this example virtual sequence is to show how the default or selected sequences for 
 // each QVIP can be run. The sequences are run in series in an arbitary order. 
+`include "uvm_macros.svh"
+import uvm_pkg::*;
 
 import "DPI-C" function int  dct(input real in_block[8][8], output real out_block[8][8]);
 
@@ -120,10 +122,10 @@ task top_example_vseq::body;
                 //Compare input == output
                 for (row = 0; row < 8; row++) begin
                     for (col = 0; col < 8; col++) begin
-                        if(in[row][col] != out[row][col])
+                        if(out_ref[row][col] != out[row][col])
                             $uvm_fatal("AXI4LITE SEQ","ERROR COMPARING IN==OUT");
                         else
-                            $display("IN[%d][%d]=%h == OUT[%d][%d]=%h",row, col, in[row][col], row, col, out[row][col]);
+                            $display("IN[%d][%d]=%h == OUT[%d][%d]=%h",row, col, out_ref[row][col], row, col, out[row][col]);
                     end
                 end
 
