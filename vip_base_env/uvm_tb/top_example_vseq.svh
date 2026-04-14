@@ -122,8 +122,9 @@ task top_example_vseq::body;
                 //Compare input == output
                 for (row = 0; row < 8; row++) begin
                     for (col = 0; col < 8; col++) begin
-                        if(out_ref[row][col] != out[row][col])
-                            $uvm_fatal("AXI4LITE SEQ","ERROR COMPARING IN==OUT");
+                        if(out_ref[row][col] != out[row][col]) begin
+                            `uvm_error("AXI4LITE SEQ","ERROR COMPARING IN==OUT");
+                        end
                         else
                             $display("IN[%d][%d]=%h == OUT[%d][%d]=%h",row, col, out_ref[row][col], row, col, out[row][col]);
                     end
