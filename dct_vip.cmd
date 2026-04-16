@@ -1,7 +1,7 @@
 // Version '20210701'
 // Library '2021.3_2:09/26/2021:08:26'
 "Configurator" create VIP_instance 2021.3_2/amba/axi4 /top/axi4_master_0 axi4_master  
-"Configurator" import /root/Documents/BSC/Master/AIPD/lab4/aipcd-lab4/axi_slave_64bits.sv
+"Configurator" import /home/profes/roberto.ignacio.genovese/AIPCD/2026/labs/aipcd-lab4/axi_slave_64bits.sv
 "Configurator" change port connection /top/axi_slave/clk /top/default_clk_gen_CLK
 "Configurator" change port connection /top/axi_slave/reset_n /top/default_reset_gen_RESET
 "Configurator" change port connection /top/axi_slave/awvalid /top/axi4_master_0_AWVALID
@@ -35,10 +35,10 @@
 "Configurator" change port connection /top/axi4_master_0/RVALID /top/axi_slave_rvalid
 "Configurator" change instance /top/axi4_master_0 rtl
 "Configurator" address_map create DCT
-"Configurator" address_map DCT add MAP_NORMAL,"CTRL",0,MAP_NS,4'h0,64'h0,64'h4,MEM_NORMAL,MAP_NORM_SEC_DATA
-"Configurator" address_map DCT add MAP_NORMAL,"STATUS",0,MAP_NS,4'h0,64'h4,64'h4,MEM_NORMAL,MAP_NORM_SEC_DATA
-"Configurator" address_map DCT add MAP_NORMAL,"IN_BLOCK",0,MAP_NS,4'h0,64'h8,64'h200,MEM_NORMAL,MAP_NORM_SEC_DATA
-"Configurator" address_map DCT add MAP_NORMAL,"OUT_BLOCK",0,MAP_NS,4'h0,64'h208,64'h200,MEM_NORMAL,MAP_NORM_SEC_DATA
+"Configurator" address_map DCT add MAP_NORMAL,"CTRL",0,MAP_NS,4'h0,64'h0,64'h8,MEM_NORMAL,MAP_NORM_SEC_DATA
+"Configurator" address_map DCT add MAP_NORMAL,"STATUS",0,MAP_NS,4'h0,64'h8,64'h8,MEM_NORMAL,MAP_NORM_SEC_DATA
+"Configurator" address_map DCT add MAP_NORMAL,"IN_BLOCK",0,MAP_NS,4'h0,64'h10,64'h200,MEM_NORMAL,MAP_NORM_SEC_DATA
+"Configurator" address_map DCT add MAP_NORMAL,"OUT_BLOCK",0,MAP_NS,4'h0,64'h210,64'h200,MEM_NORMAL,MAP_NORM_SEC_DATA
 "Configurator" change variable vip_config.addr_map DCT
 "Configurator" change hash_param RDATA_WIDTH 64
 "Configurator" change hash_param WDATA_WIDTH 64

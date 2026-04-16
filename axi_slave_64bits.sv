@@ -1,13 +1,12 @@
 module axi_slave #(
     parameter DATA_WIDTH = 64,
-    parameter ADDR_WIDTH = 32,
-    parameter MEM_SIZE   = 1024  // memory size in words
+    parameter ADDR_WIDTH = 32
 )(
     input  logic                   clk,
     input  logic                   reset_n,
 
     // Write Address Channel
-    input  logic [3:0]             awid,      // Example: 4-bit ID
+    input  logic [3:0]             awid,
     input  logic [ADDR_WIDTH-1:0]  awaddr,
     input  logic [7:0]             awlen,
     input  logic [2:0]             awsize,
@@ -23,13 +22,13 @@ module axi_slave #(
     output logic                   wready,
 
     // Write Response Channel
-    output logic [3:0]             bid,       // Write response ID
+    output logic [3:0]             bid,
     output logic [1:0]             bresp,
     output logic                   bvalid,
     input  logic                   bready,
 
     // Read Address Channel
-    input  logic [3:0]             arid,      // Read address ID
+    input  logic [3:0]             arid,
     input  logic [ADDR_WIDTH-1:0]  araddr,
     input  logic [7:0]             arlen,
     input  logic [2:0]             arsize,
@@ -38,7 +37,7 @@ module axi_slave #(
     output logic                   arready,
 
     // Read Data Channel
-    output logic [3:0]             rid,       // Read response ID
+    output logic [3:0]             rid,
     output logic [DATA_WIDTH-1:0]  rdata,
     output logic [1:0]             rresp,
     output logic                   rlast,
@@ -46,162 +45,160 @@ module axi_slave #(
     input  logic                   rready
 );
 
-    // Internal memory array (word-addressable)
-    logic [DATA_WIDTH-1:0] mem [0:MEM_SIZE-1];
+    // --- Address Map (Byte Addresses) ---
+    localparam ADDR_CTRL      = 32'h000;
+    localparam ADDR_STATUS    = 32'h004; // Moved to 0x8 to keep 64-bit alignment
+    localparam ADDR_IN_START  = 32'h008; // 0x10 to 0x20F (64 words)
+    localparam ADDR_OUT_START = 32'h208; // 0x210 to 0x40F (64 words)
 
-    // Write address registers
-    logic [3:0]            awid_reg;
+    // Internal logic for DCT
+    logic [DATA_WIDTH-1:0] in_block  [0:63];
+    logic [DATA_WIDTH-1:0] out_block [0:63];
+    logic                  dct_start;
+    logic                  dct_done;
+    logic                  dct_busy;
+
+    // AXI Internal State
     logic [ADDR_WIDTH-1:0] awaddr_reg;
-    logic [7:0]            awlen_reg;
-    logic [2:0]            awsize_reg;
-    logic [1:0]            awburst_reg;
     logic [7:0]            awburst_cnt;
     logic                  aw_active;
+    logic [3:0]            awid_reg;
 
-    // Read address registers
-    logic [3:0]            arid_reg;
     logic [ADDR_WIDTH-1:0] araddr_reg;
-    logic [7:0]            arlen_reg;
-    logic [2:0]            arsize_reg;
-    logic [1:0]            arburst_reg;
     logic [7:0]            arburst_cnt;
     logic                  ar_active;
+    logic [3:0]            arid_reg;
 
-    // Write Address Channel Handling
+    // --- Write Channel Control ---
+    assign awready = !aw_active;
+    assign wready  = aw_active;
+
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
-            awready     <= 1'b0;
-            aw_active   <= 1'b0;
-            awburst_cnt <= 8'd0;
+            aw_active     <= 1'b0;
+            awaddr_reg    <= '0;
+            awid_reg      <= '0;
+            awburst_cnt   <= '0;
+            dct_start     <= 1'b0;
+            // Clear input buffer on reset if needed
+            for (int i=0; i<64; i++) in_block[i] <= '0;
         end else begin
-            if (awvalid && !aw_active) begin
-                awid_reg    <= awid;
-                awaddr_reg  <= awaddr;
-                awlen_reg   <= awlen;
-                awsize_reg  <= awsize;
-                awburst_reg <= awburst;
-                awburst_cnt <= awlen;  // Number of additional beats in burst
+            dct_start <= 1'b0; // Pulse by default
+
+            // Accept Write Address
+            if (awvalid && awready) begin
                 aw_active   <= 1'b1;
-                awready     <= 1'b1;
-            end else begin
-                awready     <= 1'b0;
-            end
-
-            if (aw_active && wvalid && wready && wlast) begin
-                aw_active <= 1'b0;
-            end
-        end
-    end
-
-    logic [ADDR_WIDTH-1:0]  aux_awaddr_reg;
-    logic                   last_in_block_written;
-    assign aux_awaddr_reg = awaddr_reg[ADDR_WIDTH-1:2];
-
-    // Write Data Channel Handling
-    always_ff @(posedge clk or negedge reset_n) begin
-        if (!reset_n) begin
-            wready <= 1'b0;
-            last_in_block_written <= 1'b0;
-        end else begin
-            if (aw_active && wvalid) begin
-                wready <= 1'b1;
-                mem[awaddr_reg[ADDR_WIDTH-1:2]] <= wdata;
-                //$display("AXI SLAVE - WRITE ADDR %d VALUE %h AWADDR %d ",awaddr_reg[ADDR_WIDTH-1:2], wdata, awaddr_reg);
-                if( awaddr!= 0) begin //copy only data, not ctrl
-                    mem['h80 + awaddr_reg[ADDR_WIDTH-1:2]] <= wdata; // COPY IN_VALUE TO OUT_VALUE 
-                    //$display("AXI SLAVE - COPY ADDR %d VALUE %h AWADDR %d ",'h80 +awaddr_reg[ADDR_WIDTH-1:2], wdata, 'h80 +awaddr_reg);
+                awaddr_reg  <= awaddr;
+                awid_reg    <= awid;
+                awburst_cnt <= awlen;
+            end 
+            
+            // Accept Write Data
+            if (wvalid && wready) begin
+                // Address Decoding
+                if (awaddr_reg == ADDR_CTRL) begin
+                    if (wdata[0]) dct_start <= 1'b1;
+                end 
+                else if (awaddr_reg >= ADDR_IN_START && awaddr_reg < ADDR_OUT_START) begin
+                    in_block[(awaddr_reg - ADDR_IN_START) >> 3] <= wdata;
                 end
-                if(awaddr_reg[ADDR_WIDTH-1:2] == 'h80) //LAST VALUE WAS WRITTEN
-                    last_in_block_written <= 1'b1;
-                if (awburst_cnt != 0) begin
+
+                // Burst Handling
+                if (awburst_cnt == 0) begin
+                    aw_active <= 1'b0;
+                end else begin
                     awaddr_reg  <= awaddr_reg + (1 << awsize);
                     awburst_cnt <= awburst_cnt - 1;
                 end
-            end else begin
-                wready <= 1'b0;
             end
         end
     end
 
-    //FAKE STATUS DONE
-    always_ff @(posedge clk or negedge reset_n) begin
-        if (!reset_n) begin
-            mem[1] <= 4'h0; //FAKE STATUS NOT DONE
-        end 
-        else begin
-            if( last_in_block_written && mem[0] =='h1 )
-                mem[1] <= -1; //FAKE STATUS DONE
-        end
-    end
-
-
-    // Write Response Channel Handling
+    // --- Write Response ---
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             bvalid <= 1'b0;
+            bid    <= '0;
             bresp  <= 2'b00;
-            bid    <= 4'b0;
         end else begin
-            if (!bvalid && aw_active && wvalid && wready && wlast) begin
+            if (wvalid && wready && wlast) begin
                 bvalid <= 1'b1;
-                bresp  <= 2'b00;  // OKAY response
-                bid    <= awid_reg; // Echo the ID
-            end else if (bvalid && bready) begin
+                bid    <= awid_reg;
+            end else if (bready) begin
                 bvalid <= 1'b0;
             end
         end
     end
 
-    // Read Address Channel Handling
-    always_ff @(posedge clk or negedge reset_n) begin
-        if (!reset_n) begin
-            arready     <= 1'b0;
-            ar_active   <= 1'b0;
-            arburst_cnt <= 8'd0;
-        end else begin
-            if (arvalid && !ar_active) begin
-                arid_reg    <= arid;
-                araddr_reg  <= araddr;
-                arlen_reg   <= arlen;
-                arsize_reg  <= arsize;
-                arburst_reg <= arburst;
-                arburst_cnt <= arlen;
-                ar_active   <= 1'b1;
-                arready     <= 1'b1;
-            end else begin
-                arready     <= 1'b0;
-            end
-        end
-    end
+    // --- Read Channel Control ---
+    assign arready = !ar_active;
 
-    // Read Data Channel Handling
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
-            rvalid <= 1'b0;
-            rdata  <= {DATA_WIDTH{1'b0}};
-            rresp  <= 2'b00;
-            rlast  <= 1'b0;
-            rid    <= 4'b0;
+            ar_active   <= 1'b0;
+            araddr_reg  <= '0;
+            arid_reg    <= '0;
+            arburst_cnt <= '0;
+            rvalid      <= 1'b0;
+            rlast       <= 1'b0;
         end else begin
-            if (ar_active && (!rvalid || (rvalid && rready))) begin
+            if (arvalid && arready) begin
+                ar_active   <= 1'b1;
+                araddr_reg  <= araddr;
+                arid_reg    <= arid;
+                arburst_cnt <= arlen;
+            end
+
+            if (ar_active && (!rvalid || rready)) begin
                 rvalid <= 1'b1;
-                rdata  <= mem[araddr_reg[ADDR_WIDTH-1:2]];
-                //$display("AXI SLAVE - READ ADDR %d VALUE %h ARADDR %d ",araddr_reg[ADDR_WIDTH-1:2], mem[araddr_reg[ADDR_WIDTH-1:2]], araddr_reg);
-                rresp  <= 2'b00; // OKAY
-                rid    <= arid_reg; // Echo the ID
+                rid    <= arid_reg;
+                rlast  <= (arburst_cnt == 0);
+                
+                // Address Decoding for Reads
+                if (araddr_reg == ADDR_STATUS) begin
+                    if( dct_done )
+                        rdata <= {64{1'b1}};
+                    else
+                        rdata <= {64{1'b0}};
+                end 
+                else if (araddr_reg >= ADDR_OUT_START && araddr_reg < (ADDR_OUT_START + 512)) begin
+                    rdata <= out_block[(araddr_reg - ADDR_OUT_START) >> 3];
+                end 
+                else begin
+                    rdata <= '0;
+                end
+
                 if (arburst_cnt == 0) begin
-                    rlast    <= 1'b1;
                     ar_active <= 1'b0;
                 end else begin
-                    rlast    <= 1'b0;
                     araddr_reg  <= araddr_reg + (1 << arsize);
                     arburst_cnt <= arburst_cnt - 1;
                 end
-            end else if (rvalid && rready && rlast) begin
+            end else if (rvalid && rready) begin
                 rvalid <= 1'b0;
                 rlast  <= 1'b0;
             end
         end
     end
+
+    // --- DCT State Machine ---
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            dct_busy <= 1'b0;
+        end else begin
+            if (dct_start) dct_busy <= 1'b1;
+            else if (dct_done) dct_busy <= 1'b0;
+        end
+    end
+
+    // --- DCT Instance ---
+    dct_compute u_dct_compute (
+        .clk      (clk),
+        .reset_n  (reset_n),
+        .start    (dct_start),
+        .in_block (in_block),
+        .out_block(out_block),
+        .done     (dct_done)
+    );
 
 endmodule
