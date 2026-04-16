@@ -74,7 +74,7 @@ task top_example_vseq::body;
 
                 for( int i = 0; i < 64; i++) begin
                     idx = i*8;
-                    axi4_master_0_seq_0.addr = 'h8 + idx;
+                    axi4_master_0_seq_0.addr = 'h10 + idx;
                     axi4_master_0_seq_0.wr_data = {wr_data[idx],wr_data[idx+1],wr_data[idx+2],wr_data[idx+3],wr_data[idx+4],wr_data[idx+5],wr_data[idx+6],wr_data[idx+7]};//{words[i]};
                     //$display("WRITING DATA TO ADDR %h, IDX %d = %h", axi4_master_0_seq_0.addr, idx, axi4_master_0_seq_0.wr_data);
                     axi4_master_0_seq_0.start(axi4_master_0);
@@ -90,8 +90,8 @@ task top_example_vseq::body;
                 int  row, col, idx;
                 logic [63:0] temp = '0;
                 //Read STATUS until DCT operation is done
-                axi4_master_0_seq_2.addr = 'h4; //STATUS
-                axi4_master_0_seq_2.rd_bytes = 'h4; //4bytes
+                axi4_master_0_seq_2.addr = 'h8; //STATUS
+                axi4_master_0_seq_2.rd_bytes = 'h8; //4bytes
                 while( temp == 0 )begin //repeat sequence until STATUS != 0
                     temp = { axi4_master_0_seq_2.rd_data[3], axi4_master_0_seq_2.rd_data[2], 
                              axi4_master_0_seq_2.rd_data[1], axi4_master_0_seq_2.rd_data[0] };
@@ -102,7 +102,7 @@ task top_example_vseq::body;
                 //Read output values
                 for( int i = 0; i < 64; i++) begin
                     idx = i*8;
-                    axi4_master_0_seq_3.addr = 'h208 + idx;
+                    axi4_master_0_seq_3.addr = 'h210 + idx;
                     axi4_master_0_seq_3.rd_bytes = 8; //read 8 bytes 64 times
                     axi4_master_0_seq_3.start(axi4_master_0);
 
