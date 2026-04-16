@@ -47,9 +47,9 @@ module axi_slave #(
 
     // --- Address Map (Byte Addresses) ---
     localparam ADDR_CTRL      = 32'h000;
-    localparam ADDR_STATUS    = 32'h004; // Moved to 0x8 to keep 64-bit alignment
-    localparam ADDR_IN_START  = 32'h008; // 0x10 to 0x20F (64 words)
-    localparam ADDR_OUT_START = 32'h208; // 0x210 to 0x40F (64 words)
+    localparam ADDR_STATUS    = 32'h008; // Moved to 0x8 to keep 64-bit alignment
+    localparam ADDR_IN_START  = 32'h010; // 0x10 to 0x20F (64 words)
+    localparam ADDR_OUT_START = 32'h210; // 0x210 to 0x40F (64 words)
 
     // Internal logic for DCT
     logic [DATA_WIDTH-1:0] in_block  [0:63];
