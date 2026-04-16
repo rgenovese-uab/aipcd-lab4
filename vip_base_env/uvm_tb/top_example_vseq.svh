@@ -32,6 +32,7 @@ task top_example_vseq::body;
     
     real in[8][8];
     real out[8][8], out_ref[8][8];
+    int errors = 0;
 
     // Sequences run in the following order
     
@@ -120,17 +121,20 @@ task top_example_vseq::body;
                 $display("CALLED DCT - OUT_REF[0][0]=%f - OUT_REF[7][7]=%f", out_ref[0][0], out_ref[7][7]);
 
 
-                //Compare input == output
+                //Compare ref == output
                 for (row = 0; row < 8; row++) begin
                     for (col = 0; col < 8; col++) begin
                         if(out_ref[row][col] != out[row][col]) begin
-                            `uvm_fatal("AXI4LITE SEQ","ERROR COMPARING IN==OUT");
+                            $display("AXI4LITE SEQ","ERROR COMPARING element [%d][%d] REF %f RTL %f ", row, col, out_ref[row][col], out[row][col]);
+                            errors++;
                         end
                         else
-                            $display("IN[%d][%d]=%h == OUT[%d][%d]=%h",row, col, out_ref[row][col], row, col, out[row][col]);
+                            $display("REF[%d][%d]=%h == RTL[%d][%d]=%h",row, col, out_ref[row][col], row, col, out[row][col]);
                     end
                 end
 
+                if( errors )
+                    `uvm_fatal("AXI4LITE SEQ", "There were errors in the comparison of elements. Check output.")
 
 
             end
