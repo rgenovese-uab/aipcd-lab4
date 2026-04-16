@@ -58,8 +58,8 @@ module hdl_top;
     axi_slave 
     #(
         .DATA_WIDTH(64),
-        .ADDR_WIDTH(32),
-        .MEM_SIZE(1024)
+        .ADDR_WIDTH(32)
+        //.MEM_SIZE(1024)
     )
     axi_slave
     (

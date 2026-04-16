@@ -83,6 +83,7 @@ task top_example_vseq::body;
                 axi4_master_0_seq_1.addr = 'h0; //CTRL
                 axi4_master_0_seq_1.wr_data = {'h1}; //START
                 axi4_master_0_seq_1.start(axi4_master_0);
+                $display("DCT START WRITTEN @%d", $time());
             end
             begin
                 int  row, col, idx;
@@ -122,8 +123,9 @@ task top_example_vseq::body;
                 //Compare input == output
                 for (row = 0; row < 8; row++) begin
                     for (col = 0; col < 8; col++) begin
-                        if(out_ref[row][col] != out[row][col])
-                            $uvm_fatal("AXI4LITE SEQ","ERROR COMPARING IN==OUT");
+                        if(out_ref[row][col] != out[row][col]) begin
+                            `uvm_fatal("AXI4LITE SEQ","ERROR COMPARING IN==OUT");
+                        end
                         else
                             $display("IN[%d][%d]=%h == OUT[%d][%d]=%h",row, col, out_ref[row][col], row, col, out[row][col]);
                     end
