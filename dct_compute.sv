@@ -394,7 +394,7 @@ module dct_compute (
                 // ----------------------------------------------------------
                 DONE_ST: begin
                     done  <= 1'b1;
-                    state <= IDLE;
+                    state <= DONE_ST;
                 end
 
                 default: state <= IDLE;
